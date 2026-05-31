@@ -1,0 +1,9 @@
+# secrets and live credentials
+.env
+*.session
+*.session-journal
+
+# environment
+.venv/
+
+!.env.example
