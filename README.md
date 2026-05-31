@@ -1,8 +1,7 @@
-# tg — Telegram ID lookup CLI
+# Telegram ID lookup CLI 🛩️
 
 A tiny CLI for looking up Telegram **chat IDs** and **user IDs** — for your own
-groups, channels, and DMs. It logs in as your user account over MTProto (the Bot
-API can't list group members), so it sees everything your Telegram app sees.
+groups, channels, and DMs. It logs in as your user account over MTProto, so it sees everything your Telegram app sees.
 
 ## Setup
 
