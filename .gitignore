@@ -6,4 +6,7 @@
 # environment
 .venv/
 
+# history exports
+export/
+
 !.env.example

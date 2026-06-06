@@ -1,63 +1,55 @@
-# Telegram ID lookup CLI 🛩️
+# Telegram CLI 🛩️
 
-A tiny CLI for looking up Telegram **chat IDs** and **user IDs** — for your own
-groups, channels, and DMs. It logs in as your user account over MTProto, so it sees everything your Telegram app sees.
+A tiny CLI for your own Telegram account (logs in over MTProto, sees what your
+app sees). It currently does two things:
+
+- **Look up IDs** — chat & user IDs for your groups, channels, and DMs.
+- **Download history** — export a chat's full message history (and media) to disk.
 
 ## Setup
 
-1. Get API credentials at https://my.telegram.org → **API development tools** →
-   create an app (any title/platform — the fields are cosmetic). Copy the
-   `api_id` and `api_hash`.
-
-2. Install dependencies and configure:
-
+1. Get `api_id` + `api_hash` at https://my.telegram.org → **API development tools**.
+2. Install and configure:
    ```bash
    python3 -m venv .venv
    ./.venv/bin/pip install -r requirements.txt
-
-   cp .env.example .env          # then edit .env: paste api_id + api_hash
+   cp .env.example .env      # paste api_id + api_hash
    chmod +x tg
    ```
-
-3. Log in (first run only, needs a real terminal):
-
+3. Log in once (needs a real terminal):
    ```bash
-   ./tg whoami                   # prompts for phone + login code (+ 2FA if set)
+   ./tg whoami               # prompts for phone + code (+ 2FA)
    ```
+   Cached in `tg.session` — a full-account credential, gitignored. Keep it private.
 
-   The login is cached in `tg.session` — a full-account credential. Keep it
-   private (it's gitignored). Revoke anytime in Telegram → Settings → Devices.
-
-## Usage
+## Look up IDs
 
 ```bash
-./tg whoami                      # your own account id
-./tg list                        # every chat: id, type, @username, name
-./tg list --type group supergroup
-./tg resolve @somebody           # id/@username/title -> id + type + name
-./tg members <id|@username|title>
+./tg whoami                          # your own account id
+./tg list                            # every chat: id, type, @username, name
+./tg list --type group supergroup    # filter by type
+./tg resolve @somebody               # id/@username/title -> id + type + name
+./tg members <id|@username|title>    # list a group's members
 ```
 
-IDs are returned in the "marked" form the Bot API uses: users positive, basic
-groups `-<id>`, supergroups/channels `-100<id>`.
+IDs use the Bot API "marked" form: users positive, groups `-<id>`,
+supergroups/channels `-100<id>`.
 
-## Using this with your own account
+## Download history
 
-This tool ships with **no credentials** — register your own app and bring your
-own. The `api_id`/`api_hash` identify the *application*, not a user: you log in
-as yourself with `./tg whoami`, and the tool only ever sees *your* groups and
-DMs. Just put your two values in `.env` (gitignored):
+```bash
+./tg history <id|@username|title>    # full history -> export/<id>/messages.jsonl
+./tg history <id> --media            # also download photos/videos/docs
+./tg history <id> --limit 500        # only the most recent 500
+```
 
-| Key           | Purpose                     |
-| ------------- | --------------------------- |
-| `TG_API_ID`   | API id from my.telegram.org |
-| `TG_API_HASH` | API hash from my.telegram.org |
+One JSON object per message (id, date, sender_id, text, reply/forward/media
+markers), sorted by id (chronological); media goes to `export/<id>/media/`.
+Re-running is idempotent — it skips saved messages, appends new ones, resumes
+interrupted runs, and waits out rate limits. `export/` is gitignored.
 
 ## Notes
 
-- Member listing is complete for basic groups and for supergroups where you're
-  an admin. For large supergroups where you're not an admin, Telegram returns a
-  partial list.
-- The `.session` file is a live credential and is gitignored — keep it private.
-- Output is printed to stdout only; redirect it yourself if you want a file
-  (e.g. `./tg members <id> > members.txt`).
+- Member lists are complete for basic groups and supergroups you admin; otherwise
+  Telegram returns a partial list.
+- `.env` and `tg.session` are secrets — never commit them.
